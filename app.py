@@ -18,7 +18,7 @@ def init_db():
             title TEXT NOT NULL,
             amount REAL NOT NULL,
             category TEXT NOT NULL,
-            expense_data TEXT NOT NULL
+            expense_date TEXT NOT NULL
         )
     ''')
     conn.commit()
@@ -31,46 +31,38 @@ def home():
 @app.route('/add_expenses', methods=['GET'])
 def add_expenses():
     conn = get_db_connection()
-    expenses = conn.execute('SELECT * FROM expenses ORDER BY expense_data DESC, id DESC').fetchall()
+    expenses = conn.execute('SELECT * FROM expenses ORDER BY expense_date DESC').fetchall()
     conn.close()
-    expense_list = [dict(expense) for expense in expenses]
-    return jsonify(expense_list)
+
+    return jsonify([dict(expense) for expense in expenses])
 
 @app.route('/api/expenses/<int:expense_id>', methods=['GET'])
-def get_expense(expense_id):
+def get_expenses(expense_id):
     conn = get_db_connection()
     expense = conn.execute('SELECT * FROM expenses WHERE id = ?', (expense_id,)).fetchone()
-    conn.close()
-
-    expense_list = [dict(expense) for expense in expenses]
-    return jsonify(expense_list)
-
-@app.route('/api/expenses/<int:expense_id>', methods=['GET'])
-def get_expense(expense_id):
-    conn = get_db_connection()
-    expense = conn.execute('Select * FROM expenses WHERE id = ?', (expense_id,)).fetchone()
     conn.close()
 
     if expense is None:
         return jsonify({'error': 'Expense not found'}), 404
     
-    return jsonify(dict(expense))
+    return jsonify(dict(expense))       
 
 @app.route('/api/expenses', methods=['POST'])
 def add_expense():
     data = request.get_json()
+
     title = data.get('title','').strip()
     amount = data.get('amount')
     category = data.get('category','').strip()
-    expense_data = data.get('expense_data','').strip()
+    expense_date = data.get('expense_date','').strip()
 
-    if not title or amount is None or not category or not expense_data:
+    if not title or amount is None or not category or not expense_date:
         return jsonify({'error': ' All fields are required'}), 400  
     
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute('INSERT INTO expenses (title, amount, category, expense_data) VALUES (?, ?, ?, ?)',
-                   (title, amount, category, expense_data))
+    cursor.execute('INSERT INTO expenses (title, amount, category, expense_date) VALUES (?, ?, ?, ?)',
+                   (title, amount, category, expense_date))
     conn.commit()
 
     new_id = cursor.lastrowid
@@ -82,24 +74,20 @@ def add_expense():
 @app.route('/api/expenses/<int:expense_id>', methods=['PUT'])
 def update_expense(expense_id):
     data = request.get_json()
-
     title = data.get('title','').strip()
     amount = data.get('amount')
     category = data.get('category','').strip()
-    expense_data = data.get('expense_data','').strip()
+    expense_date = data.get('expense_date','').strip()  
 
-    if not title or amount is None or not category or not expense_data:
+    if not title or amount is None or not category or not expense_date:
         return jsonify({'error': 'All fields are required'}), 400
-    
+
+@app.route('/api/expenses/<int:expense_id>', methods=['DELETE'])
+def delete_expense(expense_id):
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute('''
-        UPDATE Expenses
-        SET title = ?, amount = ?, category = ?, expense_data = ?
-        WHERE id = ?
-    ''', (title, amount, category, expense_data, expense_id))
+    cursor.execute('DELETE FROM expenses WHERE id = ?', (expense_id,))
     conn.commit()
-
     if cursor.rowcount == 0:
         conn.close()
         return jsonify({'error': 'Expense not found'}), 404
@@ -110,4 +98,6 @@ def update_expense(expense_id):
 if __name__ == '__main__':
     init_db()
     app.run(debug=True)
+
+    
             
