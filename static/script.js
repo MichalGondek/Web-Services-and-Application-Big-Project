@@ -1,12 +1,14 @@
+// Get elements from the HTML page
 const form = document.getElementById('expense-form');
 const expenseIDInput = document.getElementById('expense-id');
 const titleInput = document.getElementById('title');
 const categoryInput = document.getElementById('category');
-const expenseDateInput = document.getElementById('expense-date');
-const tableBody = document.getElementById('expenses-table-body');
+const expenseDateInput = document.getElementById('expense_date');
+const tableBody = document.getElementById('expense-table-body');
 const formTitle = document.getElementById('form-title');
 const cancelEditBtn = document.getElementById('cancel-edit');
 
+// Load all expenses from the Flask API
 async function loadExpenses() {
     const response = await fetch('/api/expenses');
     const expenses = await response.json();
@@ -28,6 +30,7 @@ async function loadExpenses() {
     });
 }
 
+// Handle add/edit form submission
 form.addEventListener('submit', async function (event) {
     event.preventDefault();
 
@@ -41,12 +44,14 @@ form.addEventListener('submit', async function (event) {
     const expenseId = expenseIDInput.value;
 
     if (expenseId) {
+        // Put request updates an existing expense
         await fetch(`/api/expenses/${expenseId}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(expenseData)
         });
     } else {
+        // POST request creates a new expense
         await fetch('/api/expenses', {
             method: 'POST',
             headers: {
@@ -60,6 +65,7 @@ form.addEventListener('submit', async function (event) {
     loadExpenses();
 });
 
+// Load an expense into the form for editing
 async function editExpense(id) {
     const response = await fetch(`/api/expenses/${id}`);
     const expense = await response.json();
@@ -67,14 +73,15 @@ async function editExpense(id) {
     expenseIDInput.value = expense.id;
     titleInput.value = expense.title;
     amountInput.value = expense.amount;
-    categpryInput.value = expense.category;
+    categoryInput.value = expense.category;
     expenseDateInput.value = expense.expense_date;
 
     formTitle.textContent = 'Edit Expense';
-    cancelEditBtn.ckassList.remove('hidden');
+    cancelEditBtn.classList.remove('hidden');
 
 }
 
+// Delete an expense
 async function deleteExpense(id) {
     const confirmed = confirm('Are you sure you want to delete this expense?');
     if (!confirmed) return;
@@ -85,6 +92,7 @@ async function deleteExpense(id) {
     loadExpenses();
 }
 
+// Reset the form back to add mode
 function resetForm() {
     form.reset();
     expenseIDInput.value = '';
@@ -92,7 +100,9 @@ function resetForm() {
     cancelEditBtn.classList.add('hidden');
 }
 
+// Cancel edit mode
 cancelEditBtn.addEventListener('click', resetForm);
 
+// Load expenses when page first opens
 loadExpenses();
 
