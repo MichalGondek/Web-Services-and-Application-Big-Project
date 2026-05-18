@@ -1,5 +1,9 @@
 # Web-Services-and-Application-Big-Project
 # Personal Expense Tracker
+# Author: Michal Gondek
+
+## Hosted Application
+https://web-services-and-application-big-project.onrender.com
 
 ## Description
 This project is a simple web appliction build using flask, SQLite, HTML, CSS, and Javascript.
